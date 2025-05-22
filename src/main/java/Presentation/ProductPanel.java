@@ -1,20 +1,15 @@
 package Presentation;
 
 import Model.Product;
-
 import BusinessLogic.ProductBLL;
-
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 
-/**
- *ProductPanel is the interface for the products
- *
- */
 public class ProductPanel extends JPanel {
     private final ProductBLL productBLL = new ProductBLL();
     private final JTable productTable;
@@ -46,25 +41,55 @@ public class ProductPanel extends JPanel {
         refreshBtn.addActionListener(e -> refreshTable());
 
         addBtn.addActionListener(e -> {
-            JTextField name = new JTextField();
-            JTextField price = new JTextField();
-            JTextField quantity = new JTextField();
+            try {
+                Class<Product> clazz = Product.class;
+                Method[] methods = clazz.getDeclaredMethods();
 
-            Object[] fields = {
-                    "Name:", name,
-                    "Price:", price,
-                    "Quantity:", quantity
-            };
+                List<Method> getters = new ArrayList<>();
+                for (Method m : methods) {
+                    if (m.getName().startsWith("get") &&
+                            m.getParameterCount() == 0 &&
+                            !m.getName().equals("getClass") &&
+                            !m.getName().equals("getId")) {
+                        getters.add(m);
+                    }
+                }
 
-            int option = JOptionPane.showConfirmDialog(this, fields, "Add Product", JOptionPane.OK_CANCEL_OPTION);
-            if (option == JOptionPane.OK_OPTION) {
-                try {
-                    Product product = new Product(0, name.getText(), Double.parseDouble(price.getText()), Integer.parseInt(quantity.getText()));
+                List<JTextField> inputs = new ArrayList<>();
+                List<String> labels = new ArrayList<>();
+
+                for (Method getter : getters) {
+                    labels.add(getterToFieldName(getter.getName()) + ":");
+                    inputs.add(new JTextField());
+                }
+
+                Object[] dialogFields = new Object[labels.size() * 2];
+                for (int i = 0; i < labels.size(); i++) {
+                    dialogFields[i * 2] = labels.get(i);
+                    dialogFields[i * 2 + 1] = inputs.get(i);
+                }
+
+                int option = JOptionPane.showConfirmDialog(this, dialogFields, "Add Product", JOptionPane.OK_CANCEL_OPTION);
+                if (option == JOptionPane.OK_OPTION) {
+                    Product product = new Product();
+
+                    for (int i = 0; i < getters.size(); i++) {
+                        String fieldName = getterToFieldName(getters.get(i).getName());
+                        Class<?> returnType = getters.get(i).getReturnType();
+                        String inputValue = inputs.get(i).getText();
+
+                        Method setter = getSetter(clazz, fieldName, returnType);
+                        if (setter != null) {
+                            Object value = parseValue(inputValue, returnType);
+                            setter.invoke(product, value);
+                        }
+                    }
+
                     productBLL.insertProduct(product);
                     refreshTable();
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(this, "Invalid input!", "Error", JOptionPane.ERROR_MESSAGE);
                 }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Invalid input or error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -72,30 +97,59 @@ public class ProductPanel extends JPanel {
             int row = productTable.getSelectedRow();
             if (row == -1) return;
 
-            int id = (int) tableModel.getValueAt(row, 0);
-            String nameVal = (String) tableModel.getValueAt(row, 1);
-            double priceVal = (double) tableModel.getValueAt(row, 2);
-            int qtyVal = (int) tableModel.getValueAt(row, 3);
+            try {
+                Class<Product> cl = Product.class;
 
-            JTextField name = new JTextField(nameVal);
-            JTextField price = new JTextField(String.valueOf(priceVal));
-            JTextField quantity = new JTextField(String.valueOf(qtyVal));
+                int id = (int) productTable.getValueAt(row, 0);
+                Product product = productBLL.findProductById(id);
+                if (product == null) return;
 
-            Object[] fields = {
-                    "Name:", name,
-                    "Price:", price,
-                    "Quantity:", quantity
-            };
+                Method[] methods = cl.getDeclaredMethods();
 
-            int option = JOptionPane.showConfirmDialog(this, fields, "Edit Product", JOptionPane.OK_CANCEL_OPTION);
-            if (option == JOptionPane.OK_OPTION) {
-                try {
-                    Product product = new Product(id, name.getText(), Double.parseDouble(price.getText()), Integer.parseInt(quantity.getText()));
+                List<Method> getters = new ArrayList<>();
+                for (Method m : methods) {
+                    if (m.getName().startsWith("get") &&
+                            m.getParameterCount() == 0 &&
+                            !m.getName().equals("getClass") &&
+                            !m.getName().equals("getId")) {
+                        getters.add(m);
+                    }
+                }
+
+                List<JTextField> inputs = new ArrayList<>();
+                List<String> labels = new ArrayList<>();
+
+                for (Method getter : getters) {
+                    labels.add(getterToFieldName(getter.getName()) + ":");
+                    Object val = getter.invoke(product);
+                    inputs.add(new JTextField(val != null ? val.toString() : ""));
+                }
+
+                Object[] dialogFields = new Object[labels.size() * 2];
+                for (int i = 0; i < labels.size(); i++) {
+                    dialogFields[i * 2] = labels.get(i);
+                    dialogFields[i * 2 + 1] = inputs.get(i);
+                }
+
+                int option = JOptionPane.showConfirmDialog(this, dialogFields, "Edit Product", JOptionPane.OK_CANCEL_OPTION);
+                if (option == JOptionPane.OK_OPTION) {
+                    for (int i = 0; i < getters.size(); i++) {
+                        String fieldName = getterToFieldName(getters.get(i).getName());
+                        Class<?> returnType = getters.get(i).getReturnType();
+                        String inputValue = inputs.get(i).getText();
+
+                        Method setter = getSetter(cl, fieldName, returnType);
+                        if (setter != null) {
+                            Object value = parseValue(inputValue, returnType);
+                            setter.invoke(product, value);
+                        }
+                    }
+
                     productBLL.updateProduct(product);
                     refreshTable();
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(this, "Invalid input!", "Error", JOptionPane.ERROR_MESSAGE);
                 }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Invalid input or error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -103,7 +157,7 @@ public class ProductPanel extends JPanel {
             int row = productTable.getSelectedRow();
             if (row == -1) return;
 
-            int id = (int) tableModel.getValueAt(row, 0);
+            int id = (int) productTable.getValueAt(row, 0);
             int confirm = JOptionPane.showConfirmDialog(this, "Delete product ID " + id + "?", "Confirm", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
                 productBLL.deleteProduct(id);
@@ -114,22 +168,28 @@ public class ProductPanel extends JPanel {
 
     private void refreshTable() {
         List<Product> products = productBLL.getAllProducts();
+        DefaultTableModel model = TableGen.buildTableModel(products);
+        productTable.setModel(model);
+    }
 
-        tableModel.setRowCount(0);
-        tableModel.setColumnCount(0);
+    private static String getterToFieldName(String getterName) {
+        return getterName.substring(3);
+    }
 
-        if (products == null || products.isEmpty()) return;
-
-        tableModel.addColumn("ID");
-        tableModel.addColumn("Name");
-        tableModel.addColumn("Price");
-        tableModel.addColumn("Quantity");
-
-        for (Product p : products) {
-            tableModel.addRow(new Object[]{
-                    p.getId(), p.getName(), p.getPrice(), p.getQuantity()
-            });
+    private static Method getSetter(Class<?> cl, String fieldName, Class<?> paramType) {
+        try {
+            return cl.getMethod("set" + fieldName, paramType);
+        } catch (NoSuchMethodException e) {
+            return null;
         }
     }
-}
 
+    private static Object parseValue(String input, Class<?> type) {
+        if (type == String.class) return input;
+        else if (type == int.class || type == Integer.class) return Integer.parseInt(input);
+        else if (type == double.class || type == Double.class) return Double.parseDouble(input);
+        else if (type == long.class || type == Long.class) return Long.parseLong(input);
+        else if (type == boolean.class || type == Boolean.class) return Boolean.parseBoolean(input);
+        return null;
+    }
+}

@@ -36,10 +36,4 @@ public class ProductBLL {
     public void deleteProduct(int id) {
         productDAO.delete(id);
     }
-
-    public List<Product> getLowStockProducts(int threshold) {
-        return getAllProducts().stream()
-                .filter(p -> p.getQuantity() < threshold)
-                .collect(Collectors.toList());
-    }
 }

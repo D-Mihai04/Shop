@@ -21,6 +21,10 @@ public class ClientBLL {
         return clientDAO.findAll();
     }
 
+    public Client findClientById(int id) {
+        return clientDAO.findById(id);
+    }
+
     public Client insertClient(Client client) {
         return clientDAO.insert(client);
     }

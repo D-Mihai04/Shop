@@ -6,6 +6,8 @@ import Model.Client;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ClientPanel extends JPanel {
@@ -39,74 +41,129 @@ public class ClientPanel extends JPanel {
         refreshBtn.addActionListener(e -> refreshTable());
 
         addBtn.addActionListener(e -> {
-            JTextField firstName = new JTextField();
-            JTextField lastName = new JTextField();
-            JTextField email = new JTextField();
-            JTextField age = new JTextField();
+            try {
+                Class<Client> clazz = Client.class;
+                Method[] methods = clazz.getDeclaredMethods();
 
-            Object[] fields = {
-                    "First Name:", firstName,
-                    "Last Name:", lastName,
-                    "Email:", email,
-                    "Age:", age
-            };
+                List<Method> getters = new ArrayList<>();
+                for (Method m : methods) {
+                    if (m.getName().startsWith("get") &&
+                            m.getParameterCount() == 0 &&
+                            !m.getName().equals("getClass") &&
+                            !m.getName().equals("getId")) {
+                        getters.add(m);
+                    }
+                }
 
-            int option = JOptionPane.showConfirmDialog(this, fields, "Add Client", JOptionPane.OK_CANCEL_OPTION);
-            if (option == JOptionPane.OK_OPTION) {
-                try {
-                    Client client = new Client(0, firstName.getText(), lastName.getText(), email.getText(), Integer.parseInt(age.getText()));
+                List<JTextField> inputs = new ArrayList<>();
+                List<String> labels = new ArrayList<>();
+
+                for (Method getter : getters) {
+                    labels.add(getterToFieldName(getter.getName()) + ":");
+                    inputs.add(new JTextField());
+                }
+
+                Object[] dialogFields = new Object[labels.size() * 2];
+                for (int i = 0; i < labels.size(); i++) {
+                    dialogFields[i * 2] = labels.get(i);
+                    dialogFields[i * 2 + 1] = inputs.get(i);
+                }
+
+                int option = JOptionPane.showConfirmDialog(this, dialogFields, "Add Client", JOptionPane.OK_CANCEL_OPTION);
+                if (option == JOptionPane.OK_OPTION) {
+                    Client client = new Client();
+
+                    for (int i = 0; i < getters.size(); i++) {
+                        String fieldName = getterToFieldName(getters.get(i).getName());
+                        Class<?> returnType = getters.get(i).getReturnType();
+                        String inputValue = inputs.get(i).getText();
+
+                        Method setter = getSetter(clazz, fieldName, returnType);
+                        if (setter != null) {
+                            Object value = parseValue(inputValue, returnType);
+                            setter.invoke(client, value);
+                        }
+                    }
+
                     clientBLL.insertClient(client);
                     refreshTable();
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(this, "Invalid input!", "Error", JOptionPane.ERROR_MESSAGE);
                 }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Invalid input or error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
         editBtn.addActionListener(e -> {
-            int selectedRow = clientTable.getSelectedRow();
-            if (selectedRow == -1) {
+            int row = clientTable.getSelectedRow();
+            if (row == -1) {
                 JOptionPane.showMessageDialog(this, "Please select a client to edit.");
                 return;
             }
 
-            int id = (int) tableModel.getValueAt(selectedRow, 0);
-            String first = (String) tableModel.getValueAt(selectedRow, 1);
-            String last = (String) tableModel.getValueAt(selectedRow, 2);
-            String email = (String) tableModel.getValueAt(selectedRow, 3);
-            int age = (int) tableModel.getValueAt(selectedRow, 4);
+            try {
+                Class<Client> clazz = Client.class;
 
-            JTextField firstName = new JTextField(first);
-            JTextField lastName = new JTextField(last);
-            JTextField emailField = new JTextField(email);
-            JTextField ageField = new JTextField(String.valueOf(age));
+                int id = (int) clientTable.getValueAt(row, 0);
+                Client client = clientBLL.findClientById(id);
+                if (client == null) return;
 
-            Object[] fields = {
-                    "First Name:", firstName,
-                    "Last Name:", lastName,
-                    "Email:", emailField,
-                    "Age:", ageField
-            };
+                Method[] methods = clazz.getDeclaredMethods();
 
-            int option = JOptionPane.showConfirmDialog(this, fields, "Edit Client", JOptionPane.OK_CANCEL_OPTION);
-            if (option == JOptionPane.OK_OPTION) {
-                try {
-                    Client client = new Client(id, firstName.getText(), lastName.getText(), emailField.getText(),Integer.parseInt(ageField.getText()));
+                List<Method> getters = new ArrayList<>();
+                for (Method m : methods) {
+                    if (m.getName().startsWith("get") &&
+                            m.getParameterCount() == 0 &&
+                            !m.getName().equals("getClass") &&
+                            !m.getName().equals("getId")) {
+                        getters.add(m);
+                    }
+                }
+
+                List<JTextField> inputs = new ArrayList<>();
+                List<String> labels = new ArrayList<>();
+
+                for (Method getter : getters) {
+                    labels.add(getterToFieldName(getter.getName()) + ":");
+                    Object val = getter.invoke(client);
+                    inputs.add(new JTextField(val != null ? val.toString() : ""));
+                }
+
+                Object[] dialogFields = new Object[labels.size() * 2];
+                for (int i = 0; i < labels.size(); i++) {
+                    dialogFields[i * 2] = labels.get(i);
+                    dialogFields[i * 2 + 1] = inputs.get(i);
+                }
+
+                int option = JOptionPane.showConfirmDialog(this, dialogFields, "Edit Client", JOptionPane.OK_CANCEL_OPTION);
+                if (option == JOptionPane.OK_OPTION) {
+                    for (int i = 0; i < getters.size(); i++) {
+                        String fieldName = getterToFieldName(getters.get(i).getName());
+                        Class<?> returnType = getters.get(i).getReturnType();
+                        String inputValue = inputs.get(i).getText();
+
+                        Method setter = getSetter(clazz, fieldName, returnType);
+                        if (setter != null) {
+                            Object value = parseValue(inputValue, returnType);
+                            setter.invoke(client, value);
+                        }
+                    }
+
                     clientBLL.updateClient(client);
                     refreshTable();
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(this, "Invalid input!", "Error", JOptionPane.ERROR_MESSAGE);
                 }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Invalid input or error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
         deleteBtn.addActionListener(e -> {
-            int selectedRow = clientTable.getSelectedRow();
-            if (selectedRow == -1) {
+            int row = clientTable.getSelectedRow();
+            if (row == -1) {
                 JOptionPane.showMessageDialog(this, "Please select a client to delete.");
                 return;
             }
-            int id = (int) tableModel.getValueAt(selectedRow, 0);
+
+            int id = (int) clientTable.getValueAt(row, 0);
             int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete client ID " + id + "?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
                 clientBLL.deleteClient(id);
@@ -117,22 +174,28 @@ public class ClientPanel extends JPanel {
 
     private void refreshTable() {
         List<Client> clients = clientBLL.getAllClients();
+        DefaultTableModel model = TableGen.buildTableModel(clients);
+        clientTable.setModel(model);
+    }
 
-        tableModel.setRowCount(0);
-        tableModel.setColumnCount(0);
+    private static String getterToFieldName(String getterName) {
+        return getterName.substring(3);
+    }
 
-        if (clients == null || clients.isEmpty()) return;
-
-        tableModel.addColumn("ID");
-        tableModel.addColumn("First Name");
-        tableModel.addColumn("Last Name");
-        tableModel.addColumn("Email");
-        tableModel.addColumn("Age");
-
-        for (Client c : clients) {
-            tableModel.addRow(new Object[]{
-                    c.getId(), c.getFirst_name(), c.getLast_name(), c.getEmail(), c.getAge()
-            });
+    private static Method getSetter(Class<?> cl, String fieldName, Class<?> paramType) {
+        try {
+            return cl.getMethod("set" + fieldName, paramType);
+        } catch (NoSuchMethodException e) {
+            return null;
         }
+    }
+
+    private static Object parseValue(String input, Class<?> type) {
+        if (type == String.class) return input;
+        else if (type == int.class || type == Integer.class) return Integer.parseInt(input);
+        else if (type == double.class || type == Double.class) return Double.parseDouble(input);
+        else if (type == long.class || type == Long.class) return Long.parseLong(input);
+        else if (type == boolean.class || type == Boolean.class) return Boolean.parseBoolean(input);
+        return null;
     }
 }
