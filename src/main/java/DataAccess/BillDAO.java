@@ -69,9 +69,6 @@ public class BillDAO extends AbstractDAO<Bill> {
             statement.executeUpdate();
             resultSet = statement.getGeneratedKeys();
 
-            if (resultSet.next()) {
-                int generatedId = resultSet.getInt(1);
-            }
 
         } catch (SQLException e) {
             LOGGER.log(Level.WARNING, "BillDAO:insert " + e.getMessage());

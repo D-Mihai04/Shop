@@ -18,7 +18,6 @@ public class BillBLL {
         billDAO = new BillDAO();
     }
 
-
     public List<Bill> getAllBills() {
         return billDAO.findAll();
     }

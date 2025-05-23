@@ -1,6 +1,10 @@
 package Presentation;
 
-
+import BusinessLogic.ClientBLL;
+import BusinessLogic.OrderBLL;
+import BusinessLogic.ProductBLL;
+import Model.Client;
+import Model.Product;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -13,10 +17,9 @@ import java.util.List;
  *
  */
 public class OrderPanel extends JPanel {
-    private final BusinessLogic.ClientBLL clientBLL = new BusinessLogic.ClientBLL();
-    private final BusinessLogic.ProductBLL productBLL = new BusinessLogic.ProductBLL();
-    private final BusinessLogic.OrderBLL orderBLL = new BusinessLogic.OrderBLL();
-
+    private final ClientBLL clientBLL = new ClientBLL();
+    private final ProductBLL productBLL = new ProductBLL();
+    private final OrderBLL orderBLL = new OrderBLL();
 
     private JComboBox<Model.Client> clientCombo;
     private JComboBox<Model.Product> productCombo;
@@ -97,8 +100,8 @@ public class OrderPanel extends JPanel {
     }
 
     private void placeOrder() {
-        Model.Client client = (Model.Client) clientCombo.getSelectedItem();
-        Model.Product product = (Model.Product) productCombo.getSelectedItem();
+        Client client = (Model.Client) clientCombo.getSelectedItem();
+        Product product = (Model.Product) productCombo.getSelectedItem();
         if (client == null || product == null) {
             JOptionPane.showMessageDialog(this, "Select both client and product!", "Error", JOptionPane.ERROR_MESSAGE);
             return;

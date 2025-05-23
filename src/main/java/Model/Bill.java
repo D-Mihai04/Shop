@@ -6,6 +6,6 @@ import java.time.LocalDateTime;
  * It is a record class ,being a compact and immutable class for storing simple data
 
  */
-public record Bill(int orderId, int clientId, String clientName, String productName,
-                   int quantity, double totalPrice, LocalDateTime orderDate) {
+public record Bill(int orderId, int clientId, String clientName, String productName, int quantity,
+                   double totalPrice, LocalDateTime orderDate) {
 }

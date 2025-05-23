@@ -36,6 +36,7 @@ public class ClientPanel extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
 
+
         refreshTable();
 
         refreshBtn.addActionListener(e -> refreshTable());
@@ -171,6 +172,7 @@ public class ClientPanel extends JPanel {
             }
         });
     }
+
 
     private void refreshTable() {
         List<Client> clients = clientBLL.getAllClients();

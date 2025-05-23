@@ -51,7 +51,7 @@ public class BillPanel extends JPanel {
         tableModel.addColumn("Product Name");
         tableModel.addColumn("Quantity");
         tableModel.addColumn("Total Price");
-        tableModel.addColumn("Order Date");
+        tableModel.addColumn("Date");
 
         for (Bill b : bills) {
             tableModel.addRow(new Object[]{

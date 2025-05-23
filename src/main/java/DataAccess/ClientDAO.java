@@ -7,7 +7,7 @@ import Model.Client;
  *CLientDAO uses AbstractDAO to implement client operations.
  *
  */
-public class ClientDAO extends DataAccess.AbstractDAO<Client> {
+public class ClientDAO extends AbstractDAO<Client> {
     public ClientDAO() {
         super();
     }

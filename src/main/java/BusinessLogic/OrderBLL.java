@@ -65,6 +65,6 @@ public class OrderBLL {
 
         billDAO.insert(bill);
 
-        return "Order created successfully!";
+        return "Order created";
     }
 }

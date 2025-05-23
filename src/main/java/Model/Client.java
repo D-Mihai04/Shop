@@ -9,12 +9,12 @@ public class Client {
 
     public Client(){}
 
-    public Client(int id, String first_name, String last_name, String email, int age) {
+    public Client(int id, String firstName, String lastName, String email, int age) {
         this.id = id;
         this.age = age;
         this.email = email;
-        this.first_name = first_name;
-        this.last_name = last_name;
+        this.first_name = firstName;
+        this.last_name = lastName;
     }
 
     public int getId() {
@@ -41,15 +41,15 @@ public class Client {
     public String getFirst_name() {
         return first_name;
     }
-    public void setFirst_name(String first_name) {
-        this.first_name = first_name;
+    public void setFirst_name(String firstName) {
+        this.first_name = firstName;
     }
 
     public String getLast_name() {
         return last_name;
     }
-    public void setLast_name(String last_name) {
-        this.last_name = last_name;
+    public void setLast_name(String lastName) {
+        this.last_name = lastName;
     }
 
     @Override
