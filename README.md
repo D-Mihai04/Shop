@@ -1,93 +1,37 @@
-# PT2025_30425_Mihai_Damian_Assignment_3
+# Queue Management System
+
+A multi-threaded Java application designed to simulate and analyze client queuing behaviors. The system distributes randomly generated clients to queues based on configurable strategies, providing real-time visual feedback and logging.
 
 
+## Functionality
 
-## Getting started
+The application automates the process of managing a flow of clients entering a multi-queue system. Its primary functions include:
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+* **Dynamic Client Generation**: Automatically creates a specified number of clients, each with randomized arrival times and service durations based on user-defined ranges.
+* **Real-Time Simulation**: Executes a time-based simulation where clients enter the system at their designated arrival times and are processed by servers in real-time.
+* **Automated Dispatching**: Uses a scheduler to assign incoming clients to the most appropriate queue according to a selected logic.
+* **Live Monitoring**: Displays the state of all queues and the list of waiting clients through a graphical user interface.
+* **Data Logging**: Records every step of the simulation, including current time and queue statuses, into an external text file for later analysis.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+--
 
-## Add your files
+## System Architecture and Logic
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+The system is built on a multi-layered architecture that separates the data models, the user interface, and the processing logic.
 
-```
-cd existing_repo
-git remote add origin https://gitlab.com/pt2025_30425_damian_mihai/pt2025_30425_mihai_damian_assignment_3.git
-git branch -M main
-git push -uf origin main
-```
+### Multi-Threading and Concurrency
+The application utilizes Java's concurrency tools to simulate parallel processing. Each queue is an independent thread that processes its assigned clients one second at a time. A `BlockingQueue` is used within each server to handle client data safely across multiple threads, ensuring that client dispatching and client processing do not conflict.
 
-## Integrate with your tools
+### Selection Strategies
+The `Scheduler` implements a Strategy Pattern, allowing the system to switch between two distinct algorithms:
+* **Time Strategy**: The scheduler calculates the total waiting time for every queue and assigns the new client to the queue that will be free the soonest.
+* **Shortest Queue Strategy**: The scheduler checks the number of clients currently waiting in each queue and assigns the new client to the queue with the fewest people.
 
-- [ ] [Set up project integrations](https://gitlab.com/pt2025_30425_damian_mihai/pt2025_30425_mihai_damian_assignment_3/-/settings/integrations)
-
-## Collaborate with your team
-
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+### Simulation Flow
+1. **Initialization**: The user inputs simulation parameters through the interface.
+2. **Client Setup**: The system generates the client pool and sorts them by arrival time to ensure chronological entry into the simulation.
+3. **The Simulation Loop**: A central clock increments every second. At each tick:
+    * The system checks if any clients have arrived and dispatches them to a queue.
+    * Each active queue thread decrements the service time of the client currently at the front.
+    * When a client's service time reaches zero, they are removed from the queue.
+4. **Finalization**: Once the time limit is reached or all clients are processed, the threads are stopped, and the final logs are saved.
