@@ -13,7 +13,7 @@ The application automates the process of managing a flow of clients entering a m
 * **Live Monitoring**: Displays the state of all queues and the list of waiting clients through a graphical user interface.
 * **Data Logging**: Records every step of the simulation, including current time and queue statuses, into an external text file for later analysis.
 
---
+
 
 ## System Architecture and Logic
 
